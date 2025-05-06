@@ -6,6 +6,8 @@ services:
 
   Tourze\JsonRPCEndpointBundle\EventSubscriber\:
     resource: '../../EventSubscriber/'
+  Tourze\JsonRPCEndpointBundle\Procedure\:
+    resource: '../../Procedure/'
   Tourze\JsonRPCEndpointBundle\Service\:
     resource: '../../Service/'
   Tourze\JsonRPCEndpointBundle\Serialization\:
