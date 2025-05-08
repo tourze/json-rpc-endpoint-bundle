@@ -2,6 +2,7 @@
 
 namespace Tourze\JsonRPCEndpointBundle\Service;
 
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -13,11 +14,12 @@ use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 /**
  * Class JsonRpcParamsValidator
  */
+#[WithMonologChannel('procedure')]
 class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
 {
     public function __construct(
         private readonly ValidatorInterface $validator,
-        private readonly LoggerInterface $procedureLogger
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -30,7 +32,7 @@ class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
 
         $value = $jsonRpcRequest->getParams()->toArray();
         $constraints = $method->getParamsConstraint();
-        $this->procedureLogger->debug('进行JsonRPC请求参数校验', [
+        $this->logger->debug('进行JsonRPC请求参数校验', [
             'value' => $value,
             'constraints' => $constraints,
         ]);

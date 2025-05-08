@@ -2,6 +2,7 @@
 
 namespace Tourze\JsonRPCEndpointBundle\Service;
 
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -23,6 +24,7 @@ use Tourze\JsonRPCEndpointBundle\EventSubscriber\JsonRpcResultListener;
 use Tourze\JsonRPCEndpointBundle\Serialization\JsonRpcCallSerializer;
 
 #[AsAlias(EndpointInterface::class)]
+#[WithMonologChannel('procedure')]
 class JsonRpcEndpoint implements ResetInterface, EndpointInterface
 {
     private Stopwatch $stopwatch;
@@ -31,7 +33,7 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
         private readonly JsonRpcCallSerializer $jsonRpcCallSerializer,
         private readonly JsonRpcRequestHandler $jsonRpcRequestHandler,
         private readonly ExceptionHandler $exceptionHandler,
-        private readonly LoggerInterface $procedureLogger,
+        private readonly LoggerInterface $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly JsonRpcResultListener $jsonRpcResultListener,
         private readonly CacheInterface $cache,
@@ -48,14 +50,14 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
         $payload = $event->getPayload();
 
         if (empty($payload) || !json_validate($payload)) {
-            $this->procedureLogger->error('JsonRPC请求时，传入了无效的字符串', [
+            $this->logger->error('JsonRPC请求时，传入了无效的字符串', [
                 'request' => $payload,
             ]);
 
             return '';
         }
 
-        $this->procedureLogger->debug('JsonRPC接收到请求', [
+        $this->logger->debug('JsonRPC接收到请求', [
             'request' => $payload,
         ]);
         $jsonRpcCall = null;
@@ -65,7 +67,7 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
             $jsonRpcCallResponse = $this->getJsonRpcCallResponse($jsonRpcCall, $payload);
             $e->stop();
             $resp = $this->getResponseString($jsonRpcCallResponse, $jsonRpcCall);
-            $this->procedureLogger->debug('执行JsonRPC请求结束', [
+            $this->logger->debug('执行JsonRPC请求结束', [
                 'duration' => $e->getDuration(),
                 'memory' => $e->getMemory(),
             ]);
@@ -102,7 +104,7 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
         foreach ($jsonRpcCallResponse->getResponseList() as $response) {
             $r = $response->getResult();
             $append = $this->jsonRpcResultListener->getResult();
-            $this->procedureLogger->debug('补充额外的返回值', [
+            $this->logger->debug('补充额外的返回值', [
                 'append' => $append,
                 'result' => $r,
             ]);
