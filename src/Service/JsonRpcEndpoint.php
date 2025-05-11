@@ -4,7 +4,6 @@ namespace Tourze\JsonRPCEndpointBundle\Service;
 
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -36,7 +35,6 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
         private readonly LoggerInterface $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly JsonRpcResultListener $jsonRpcResultListener,
-        private readonly CacheInterface $cache,
     ) {
         $this->stopwatch = new Stopwatch(true);
     }
@@ -146,14 +144,6 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
             if ($item instanceof \Exception) {
                 // Exception will be caught just below and converted to response
                 throw $item;
-            }
-
-            if (isset($_ENV['JSONRPC_ID_REUSE_INTERVAL'])) {
-                $cacheKey = 'jsonRpcId' . $item->getId();
-                if ($this->cache->has($cacheKey)) {
-                    throw new \RuntimeException('请求频繁，请稍后再试');
-                }
-                $this->cache->set($cacheKey, true, (int) $_ENV['JSONRPC_ID_REUSE_INTERVAL']);
             }
 
             $event = new MethodExecutingEvent();

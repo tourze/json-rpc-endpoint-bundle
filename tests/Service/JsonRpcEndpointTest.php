@@ -5,7 +5,6 @@ namespace Tourze\JsonRPCEndpointBundle\Tests\Service;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Event\RequestStartEvent;
@@ -29,7 +28,6 @@ class JsonRpcEndpointTest extends TestCase
     private LoggerInterface|MockObject $logger;
     private EventDispatcherInterface|MockObject $eventDispatcher;
     private JsonRpcResultListener|MockObject $resultListener;
-    private CacheInterface|MockObject $cache;
 
     protected function setUp(): void
     {
@@ -39,7 +37,6 @@ class JsonRpcEndpointTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->resultListener = $this->createMock(JsonRpcResultListener::class);
-        $this->cache = $this->createMock(CacheInterface::class);
 
         $this->endpoint = new JsonRpcEndpoint(
             $this->serializer,
@@ -48,7 +45,6 @@ class JsonRpcEndpointTest extends TestCase
             $this->logger,
             $this->eventDispatcher,
             $this->resultListener,
-            $this->cache
         );
     }
 
