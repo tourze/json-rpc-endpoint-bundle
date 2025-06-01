@@ -23,7 +23,7 @@
     "tourze/bundle-dependency": "0.0.*",
     "tourze/json-rpc-container-bundle": "0.0.*",
     "tourze/json-rpc-core": "0.0.*",
-    "tourze/user-event-bundle": "~0.0.3"
+    "tourze/user-event-bundle": "0.0.*"
   },
   "require-dev": {
     "phpstan/phpstan": "^2.1",
