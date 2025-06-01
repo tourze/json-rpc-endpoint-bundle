@@ -35,6 +35,7 @@ class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
         $this->logger->debug('进行JsonRPC请求参数校验', [
             'value' => $value,
             'constraints' => $constraints,
+            'method' => $method::class,
         ]);
         $sfViolationList = $this->validator->validate($value, $constraints);
 
