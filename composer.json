@@ -22,7 +22,7 @@
     "tourze/backtrace-helper": "~0.0.5",
     "tourze/bundle-dependency": "0.0.*",
     "tourze/json-rpc-container-bundle": "0.0.*",
-    "tourze/json-rpc-core": "^0.0.6",
+    "tourze/json-rpc-core": "0.0.*",
     "tourze/user-event-bundle": "~0.0.3"
   },
   "require-dev": {
