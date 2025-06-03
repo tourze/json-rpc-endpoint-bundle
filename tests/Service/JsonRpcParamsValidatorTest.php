@@ -101,6 +101,7 @@ class JsonRpcParamsValidatorTest extends TestCase
             ->with('进行JsonRPC请求参数校验', [
                 'value' => $params,
                 'constraints' => $constraints,
+                'method' => $method::class,
             ]);
 
         $result = $this->validator->validate($request, $method);
@@ -158,6 +159,7 @@ class JsonRpcParamsValidatorTest extends TestCase
             ->with('进行JsonRPC请求参数校验', [
                 'value' => $params,
                 'constraints' => $constraints,
+                'method' => $method::class,
             ]);
 
         $result = $this->validator->validate($request, $method);
