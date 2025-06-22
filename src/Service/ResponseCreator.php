@@ -22,7 +22,7 @@ class ResponseCreator
         $response->setJsonrpc($fromRequest->getJsonrpc());
         $response->setIsNotification($fromRequest->isNotification());
 
-        if ($fromRequest->getId()) {
+        if ($fromRequest->getId() !== null) {
             $response->setId($fromRequest->getId());
         }
 

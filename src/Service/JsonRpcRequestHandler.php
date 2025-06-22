@@ -2,7 +2,7 @@
 
 namespace Tourze\JsonRPCEndpointBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Contracts\RequestHandlerInterface;
@@ -39,10 +39,10 @@ class JsonRpcRequestHandler implements RequestHandlerInterface
 
         $this->validateParamList($request, $method);
 
-        $startTime = Carbon::now();
+        $startTime = CarbonImmutable::now();
         try {
             $result = $method->__invoke($request);
-            $endTime = Carbon::now();
+            $endTime = CarbonImmutable::now();
 
             $event = new MethodExecuteSuccessEvent();
             $event->setStartTime($startTime);
@@ -52,7 +52,7 @@ class JsonRpcRequestHandler implements RequestHandlerInterface
             $event->setJsonRpcRequest($request);
             $this->eventDispatcher->dispatch($event);
         } catch (\Throwable $exception) {
-            $endTime = Carbon::now();
+            $endTime = CarbonImmutable::now();
 
             $event = new MethodExecuteFailureEvent();
             $event->setStartTime($startTime);
@@ -75,7 +75,7 @@ class JsonRpcRequestHandler implements RequestHandlerInterface
 
         if (!$method instanceof JsonRpcMethodInterface) {
             throw new JsonRpcMethodNotFoundException($request->getMethod(), [
-                'class' => $method ? $method::class : null,
+                'class' => null,
             ]);
         }
 
@@ -87,12 +87,10 @@ class JsonRpcRequestHandler implements RequestHandlerInterface
      */
     private function validateParamList(JsonRpcRequest $jsonRpcRequest, JsonRpcMethodInterface $method): void
     {
-        if (null !== $this->methodParamsValidator) {
-            $violationList = $this->methodParamsValidator->validate($jsonRpcRequest, $method);
+        $violationList = $this->methodParamsValidator->validate($jsonRpcRequest, $method);
 
-            if ([] !== $violationList) {
-                throw new JsonRpcInvalidParamsException($violationList);
-            }
+        if ([] !== $violationList) {
+            throw new JsonRpcInvalidParamsException($violationList);
         }
     }
 

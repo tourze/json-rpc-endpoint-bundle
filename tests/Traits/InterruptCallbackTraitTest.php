@@ -14,11 +14,14 @@ class TestClassWithInterruptCallbackTrait
     
     public function executeWithCallback(): mixed
     {
-        if (isset($this->interruptCallback)) {
-            return call_user_func($this->interruptCallback);
+        // 检查属性是否已设置
+        try {
+            $callback = $this->getInterruptCallback();
+            return call_user_func($callback);
+        } catch (\Error $e) {
+            // 属性未初始化时返回默认值
+            return 'default_result';
         }
-        
-        return 'default_result';
     }
 }
 

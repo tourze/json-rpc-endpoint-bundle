@@ -36,7 +36,7 @@ class JsonRpcResponseNormalizer
             self::KEY_ID => $response->getId(),
         ];
 
-        if ($response->getError()) {
+        if ($response->getError() !== null) {
             $data[self::KEY_ERROR] = $this->normalizeError(
                 $response->getError()
             );
@@ -54,7 +54,7 @@ class JsonRpcResponseNormalizer
             self::SUB_KEY_ERROR_MESSAGE => $error->getErrorMessage(),
         ];
 
-        if ($error->getErrorData()) {
+        if ($error->getErrorData() !== []) {
             $normalizedError[self::SUB_KEY_ERROR_DATA] = $error->getErrorData();
         }
 

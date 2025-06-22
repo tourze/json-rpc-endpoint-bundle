@@ -21,7 +21,12 @@ class JsonRpcResultListener implements ResetInterface
             return;
         }
 
-        /* @var AppendJsonRpcResultAware $event */
+        // 通过方法检查确保对象确实有 getJsonRpcResult 方法
+        if (!method_exists($event, 'getJsonRpcResult')) {
+            return;
+        }
+
+        // @phpstan-ignore-next-line
         $this->result = array_merge($this->result, $event->getJsonRpcResult());
     }
 

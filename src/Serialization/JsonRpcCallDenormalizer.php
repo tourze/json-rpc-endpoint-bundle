@@ -16,7 +16,7 @@ class JsonRpcCallDenormalizer
     public function denormalize(array $decodedContent): JsonRpcCallRequest
     {
         $jsonRpcCall = new JsonRpcCallRequest(
-            static::guessBatchOrNot($decodedContent)
+            self::guessBatchOrNot($decodedContent)
         );
 
         $this->populateItem($jsonRpcCall, $decodedContent);
@@ -59,6 +59,10 @@ class JsonRpcCallDenormalizer
                 }
 
                 // Else populate the item (exception will be managed later
+                // Convert Throwable to Exception if needed
+                if (!$exception instanceof \Exception) {
+                    $exception = new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+                }
                 $jsonRpcCall->addExceptionItem($exception);
             }
         }

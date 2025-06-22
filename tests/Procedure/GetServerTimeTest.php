@@ -22,8 +22,6 @@ class GetServerTimeTest extends TestCase
         $result = $this->procedure->execute();
         
         $afterTime = time();
-
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('time', $result);
         $this->assertIsInt($result['time']);
         $this->assertGreaterThanOrEqual($beforeTime, $result['time']);
@@ -38,8 +36,6 @@ class GetServerTimeTest extends TestCase
         $result = $this->procedure->__invoke($request);
         
         $afterTime = time();
-
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('time', $result);
         $this->assertIsInt($result['time']);
         $this->assertGreaterThanOrEqual($beforeTime, $result['time']);

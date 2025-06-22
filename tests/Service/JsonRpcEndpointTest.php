@@ -62,7 +62,7 @@ class JsonRpcEndpointTest extends TestCase
         // RequestStartEvent
         $this->eventDispatcher->expects($this->any())
             ->method('dispatch')
-            ->willReturnCallback(function ($event) use ($request, $payload, $responseString, $jsonRpcCallResponse, $jsonRpcCall) {
+            ->willReturnCallback(function ($event) use ($request, $payload, $responseString, $jsonRpcCall) {
                 if ($event instanceof RequestStartEvent) {
                     $this->assertEquals($payload, $event->getPayload());
                     $this->assertSame($request, $event->getRequest());
@@ -98,7 +98,7 @@ class JsonRpcEndpointTest extends TestCase
         $this->serializer->expects($this->once())
             ->method('serialize')
             ->with($this->callback(function (JsonRpcCallResponse $response) {
-                return $response instanceof JsonRpcCallResponse && count($response->getResponseList()) > 0;
+                return count($response->getResponseList()) > 0;
             }))
             ->willReturn($responseString);
 

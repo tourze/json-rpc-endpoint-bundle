@@ -51,7 +51,6 @@ class JsonRpcResponseNormalizerTest extends TestCase
 
         $this->assertSame('2.0', $result['jsonrpc']);
         $this->assertSame(1, $result['id']);
-        $this->assertIsArray($result['error']);
         $this->assertArrayHasKey('code', $result['error']);
         $this->assertArrayHasKey('message', $result['error']);
     }
@@ -166,7 +165,8 @@ class JsonRpcResponseNormalizerTest extends TestCase
 
     public function testNormalizeError_withoutErrorData_doesNotIncludeDataField(): void
     {
-        $exception = new JsonRpcInternalErrorException(new \Exception('Test error'));
+        // 创建一个没有 data 的 JsonRpcException
+        $exception = new \Tourze\JsonRPC\Core\Exception\JsonRpcException(-32000, 'Test error');
         
         // 使用反射调用私有方法
         $method = new \ReflectionMethod(JsonRpcResponseNormalizer::class, 'normalizeError');
@@ -176,9 +176,7 @@ class JsonRpcResponseNormalizerTest extends TestCase
         $this->assertArrayHasKey('code', $result);
         $this->assertArrayHasKey('message', $result);
         
-        // 如果错误没有数据，不应该包含data字段
-        if ($exception->getErrorData() === null) {
-            $this->assertArrayNotHasKey('data', $result);
-        }
+        // 验证没有 data 字段
+        $this->assertArrayNotHasKey('data', $result);
     }
 } 

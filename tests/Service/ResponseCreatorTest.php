@@ -13,13 +13,11 @@ class ResponseCreatorTest extends TestCase
 {
     private ResponseCreator $responseCreator;
     private JsonRpcRequest|MockObject $requestMock;
-    private JsonRpcResponse|MockObject $responseMock;
 
     protected function setUp(): void
     {
         $this->responseCreator = new ResponseCreator();
         $this->requestMock = $this->createMock(JsonRpcRequest::class);
-        $this->responseMock = $this->createMock(JsonRpcResponse::class);
     }
 
     public function testCreateEmptyResponse_withNoRequest_returnsEmptyResponse(): void

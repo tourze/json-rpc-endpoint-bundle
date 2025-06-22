@@ -103,7 +103,6 @@ class JsonRPCEndpointBundleTest extends TestCase
     {
         $dependencies = JsonRPCEndpointBundle::getBundleDependencies();
         
-        $this->assertIsArray($dependencies);
         $this->assertArrayHasKey(\Tourze\JsonRPCContainerBundle\JsonRPCContainerBundle::class, $dependencies);
         $this->assertEquals(['all' => true], $dependencies[\Tourze\JsonRPCContainerBundle\JsonRPCContainerBundle::class]);
     }

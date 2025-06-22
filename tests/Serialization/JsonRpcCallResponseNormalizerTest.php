@@ -69,8 +69,6 @@ class JsonRpcCallResponseNormalizerTest extends TestCase
             ->willReturnOnConsecutiveCalls($normalizedData1, $normalizedData2);
 
         $result = $this->normalizer->normalize($callResponse);
-
-        $this->assertIsArray($result);
         $this->assertCount(2, $result);
         $this->assertSame($normalizedData1, $result[0]);
         $this->assertSame($normalizedData2, $result[1]);
@@ -121,8 +119,6 @@ class JsonRpcCallResponseNormalizerTest extends TestCase
             ->willReturn($normalizedData);
 
         $result = $this->normalizer->normalize($callResponse);
-
-        $this->assertIsArray($result);
         $this->assertCount(1, $result);
         $this->assertSame($normalizedData, $result[0]);
     }

@@ -150,7 +150,7 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
             $event->setItem($item);
             $this->eventDispatcher->dispatch($event);
 
-            if ($event->getResponse()) {
+            if ($event->getResponse() !== null) {
                 return $event->getResponse();
             }
 

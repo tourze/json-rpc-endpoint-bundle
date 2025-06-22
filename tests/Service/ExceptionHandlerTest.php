@@ -82,7 +82,7 @@ class ExceptionHandlerTest extends TestCase
         $this->eventDispatcher->expects($this->once())
             ->method('dispatch')
             ->with($this->callback(function (OnExceptionEvent $event) {
-                return $event instanceof OnExceptionEvent;
+                return true;
             }))
             ->willReturnCallback(function (OnExceptionEvent $event) use ($modifiedException) {
                 $event->setException($modifiedException);
