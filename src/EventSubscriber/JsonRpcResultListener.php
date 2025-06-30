@@ -10,7 +10,7 @@ use Tourze\UserEventBundle\Event\UserInteractionEvent;
 /**
  * @deprecated 这个设计不好，如果需要自定义数据的话，在业务内抛出来算了
  */
-#[AutoconfigureTag('as-coroutine')]
+#[AutoconfigureTag(name: 'as-coroutine')]
 class JsonRpcResultListener implements ResetInterface
 {
     private array $result = [];

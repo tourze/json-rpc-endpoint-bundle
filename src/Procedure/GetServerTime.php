@@ -6,7 +6,7 @@ use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Domain\JsonRpcMethodInterface;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 
-#[MethodExpose('GetServerTime')]
+#[MethodExpose(method: 'GetServerTime')]
 class GetServerTime implements JsonRpcMethodInterface
 {
     public function execute(): array

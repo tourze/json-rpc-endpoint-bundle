@@ -14,7 +14,7 @@ use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 /**
  * Class JsonRpcParamsValidator
  */
-#[WithMonologChannel('procedure')]
+#[WithMonologChannel(channel: 'procedure')]
 class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
 {
     public function __construct(

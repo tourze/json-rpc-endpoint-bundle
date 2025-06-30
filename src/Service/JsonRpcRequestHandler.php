@@ -18,7 +18,7 @@ use Tourze\JsonRPCContainerBundle\Service\MethodResolver;
 /**
  * Class JsonRpcRequestHandler
  */
-#[AsAlias(RequestHandlerInterface::class)]
+#[AsAlias(id: RequestHandlerInterface::class)]
 class JsonRpcRequestHandler implements RequestHandlerInterface
 {
     public function __construct(

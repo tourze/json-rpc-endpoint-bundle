@@ -3,15 +3,7 @@
 namespace Tourze\JsonRPCEndpointBundle\Tests\Traits;
 
 use PHPUnit\Framework\TestCase;
-use Tourze\JsonRPCEndpointBundle\Traits\AppendJsonRpcResultAware;
-
-/**
- * 创建一个使用AppendJsonRpcResultAware trait的测试类
- */
-class TestClassWithAppendJsonRpcResultAware
-{
-    use AppendJsonRpcResultAware;
-}
+use Tourze\JsonRPCEndpointBundle\Tests\Fixtures\TestClassWithAppendJsonRpcResultAware;
 
 class AppendJsonRpcResultAwareTest extends TestCase
 {

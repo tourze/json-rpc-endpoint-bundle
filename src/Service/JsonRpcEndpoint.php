@@ -22,8 +22,8 @@ use Tourze\JsonRPC\Core\Model\JsonRpcResponse;
 use Tourze\JsonRPCEndpointBundle\EventSubscriber\JsonRpcResultListener;
 use Tourze\JsonRPCEndpointBundle\Serialization\JsonRpcCallSerializer;
 
-#[AsAlias(EndpointInterface::class)]
-#[WithMonologChannel('procedure')]
+#[AsAlias(id: EndpointInterface::class)]
+#[WithMonologChannel(channel: 'procedure')]
 class JsonRpcEndpoint implements ResetInterface, EndpointInterface
 {
     private Stopwatch $stopwatch;
