@@ -1,11 +1,11 @@
 <?php
 
-namespace Tourze\JsonRPCEndpointBundle\Traits;
+namespace Tourze\JsonRPCEndpointBundle\Tests\Fixtures;
 
 /**
- * @deprecated 这个设计不好，如果需要自定义数据的话，在业务内抛出来算了
+ * 用于测试 JsonRPC 结果处理的测试类
  */
-trait AppendJsonRpcResultAware
+class TestClassWithJsonRpcResult
 {
     private array $jsonRpcResult = [];
 

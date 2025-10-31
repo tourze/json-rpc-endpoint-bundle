@@ -1,14 +1,15 @@
 services:
-  # default configuration for services in *this* file
   _defaults:
-    autowire: true      # Automatically injects dependencies in your services.
-    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    autowire: true
+    autoconfigure: true
 
-  Tourze\JsonRPCEndpointBundle\EventSubscriber\:
-    resource: '../../EventSubscriber/'
-  Tourze\JsonRPCEndpointBundle\Procedure\:
-    resource: '../../Procedure/'
   Tourze\JsonRPCEndpointBundle\Service\:
     resource: '../../Service/'
-  Tourze\JsonRPCEndpointBundle\Serialization\:
-    resource: '../../Serialization/'
+  Tourze\JsonRPCEndpointBundle\Procedure\:
+    resource: '../../Procedure/'
+
+  Tourze\JsonRPC\Core\Serialization\JsonRpcCallDenormalizer: ~
+  Tourze\JsonRPC\Core\Serialization\JsonRpcCallResponseNormalizer: ~
+  Tourze\JsonRPC\Core\Serialization\JsonRpcCallSerializer: ~
+  Tourze\JsonRPC\Core\Serialization\JsonRpcRequestDenormalizer: ~
+  Tourze\JsonRPC\Core\Serialization\JsonRpcResponseNormalizer: ~

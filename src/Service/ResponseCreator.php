@@ -22,7 +22,7 @@ class ResponseCreator
         $response->setJsonrpc($fromRequest->getJsonrpc());
         $response->setIsNotification($fromRequest->isNotification());
 
-        if ($fromRequest->getId() !== null) {
+        if (null !== $fromRequest->getId()) {
             $response->setId($fromRequest->getId());
         }
 
@@ -31,18 +31,21 @@ class ResponseCreator
 
     public function createResultResponse(mixed $result, ?JsonRpcRequest $fromRequest = null): JsonRpcResponse
     {
-        return $this->createEmptyResponse($fromRequest)
-            ->setResult($result);
+        $response = $this->createEmptyResponse($fromRequest);
+        $response->setResult($result);
+
+        return $response;
     }
 
     public function createErrorResponse(\Throwable $exception, ?JsonRpcRequest $fromRequest = null): JsonRpcResponse
     {
-        return $this->createEmptyResponse($fromRequest)
-            ->setError(
-                $exception instanceof JsonRpcExceptionInterface
-                    ? $exception
-                    : new JsonRpcInternalErrorException($exception)
-            )
-        ;
+        $response = $this->createEmptyResponse($fromRequest);
+        $response->setError(
+            $exception instanceof JsonRpcExceptionInterface
+                ? $exception
+                : new JsonRpcInternalErrorException($exception)
+        );
+
+        return $response;
     }
 }

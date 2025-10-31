@@ -15,14 +15,17 @@ use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
  * Class JsonRpcParamsValidator
  */
 #[WithMonologChannel(channel: 'procedure')]
-class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
+readonly class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
 {
     public function __construct(
-        private readonly ValidatorInterface $validator,
-        private readonly LoggerInterface $logger,
+        private ValidatorInterface $validator,
+        private LoggerInterface $logger,
     ) {
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function validate(JsonRpcRequest $jsonRpcRequest, JsonRpcMethodInterface $method): array
     {
         $violationList = [];
@@ -30,7 +33,8 @@ class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
             return $violationList;
         }
 
-        $value = $jsonRpcRequest->getParams()->toArray();
+        $params = $jsonRpcRequest->getParams();
+        $value = $params?->toArray() ?? [];
         $constraints = $method->getParamsConstraint();
         $this->logger->debug('进行JsonRPC请求参数校验', [
             'value' => $value,
@@ -41,11 +45,9 @@ class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
 
         foreach ($sfViolationList as $violation) {
             /* @var ConstraintViolationInterface $violation */
-            $violationList[] = [
-                'path' => $violation->getPropertyPath(),
-                'message' => $violation->getMessage(),
-                'code' => $violation->getCode(),
-            ];
+            $path = $violation->getPropertyPath();
+            $message = $violation->getMessage();
+            $violationList[] = ('' !== $path) ? sprintf('%s: %s', $path, $message) : $message;
         }
 
         return $violationList;

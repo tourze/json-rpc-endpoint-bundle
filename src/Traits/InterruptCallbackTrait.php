@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\JsonRPCEndpointBundle\Traits;
 
 /**
@@ -8,16 +10,16 @@ namespace Tourze\JsonRPCEndpointBundle\Traits;
 trait InterruptCallbackTrait
 {
     /**
-     * @var callable 可执行的回调函数
+     * @var callable|null 可执行的回调函数
      */
     private $interruptCallback;
 
-    public function getInterruptCallback(): callable
+    public function getInterruptCallback(): ?callable
     {
         return $this->interruptCallback;
     }
 
-    public function setInterruptCallback(callable $interruptCallback): void
+    public function setInterruptCallback(?callable $interruptCallback): void
     {
         $this->interruptCallback = $interruptCallback;
     }

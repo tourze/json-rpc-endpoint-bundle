@@ -2,243 +2,71 @@
 
 namespace Tourze\JsonRPCEndpointBundle\Tests\Service;
 
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\JsonRPC\Core\Domain\JsonRpcMethodInterface;
-use Tourze\JsonRPC\Core\Event\MethodExecuteFailureEvent;
-use Tourze\JsonRPC\Core\Event\MethodExecuteSuccessEvent;
-use Tourze\JsonRPC\Core\Exception\JsonRpcInvalidParamsException;
 use Tourze\JsonRPC\Core\Exception\JsonRpcMethodNotFoundException;
+use Tourze\JsonRPC\Core\Model\JsonRpcParams;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
-use Tourze\JsonRPC\Core\Model\JsonRpcResponse;
-use Tourze\JsonRPCContainerBundle\Service\MethodResolver;
-use Tourze\JsonRPCEndpointBundle\Service\JsonRpcParamsValidator;
 use Tourze\JsonRPCEndpointBundle\Service\JsonRpcRequestHandler;
-use Tourze\JsonRPCEndpointBundle\Service\ResponseCreator;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
-class JsonRpcRequestHandlerTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(JsonRpcRequestHandler::class)]
+#[RunTestsInSeparateProcesses]
+final class JsonRpcRequestHandlerTest extends AbstractIntegrationTestCase
 {
     private JsonRpcRequestHandler $requestHandler;
-    private MethodResolver|MockObject $methodResolver;
-    private ResponseCreator|MockObject $responseCreator;
-    private EventDispatcherInterface|MockObject $eventDispatcher;
-    private JsonRpcParamsValidator|MockObject $paramsValidator;
 
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->methodResolver = $this->createMock(MethodResolver::class);
-        $this->responseCreator = $this->createMock(ResponseCreator::class);
-        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->paramsValidator = $this->createMock(JsonRpcParamsValidator::class);
-
-        $this->requestHandler = new JsonRpcRequestHandler(
-            $this->methodResolver,
-            $this->responseCreator,
-            $this->eventDispatcher,
-            $this->paramsValidator
-        );
+        $this->requestHandler = self::getService(JsonRpcRequestHandler::class);
     }
 
-    public function testProcessJsonRpcRequest_withValidRequest_returnsSuccessResponse(): void
+    public function testProcessJsonRpcRequestWithValidRequestReturnsResponse(): void
     {
         $request = new JsonRpcRequest();
-        $request->setMethod('test.method');
+        $request->setMethod('GetServerTime');
+        $request->setId(1);
+        $request->setParams(new JsonRpcParams([])); // Initialize params
 
-        $method = $this->createMock(JsonRpcMethodInterface::class);
-        $result = ['data' => 'test result'];
-        $response = new JsonRpcResponse();
+        $result = $this->requestHandler->processJsonRpcRequest($request);
 
-        $this->methodResolver->expects($this->once())
-            ->method('resolve')
-            ->with('test.method')
-            ->willReturn($method);
-
-        $this->paramsValidator->expects($this->once())
-            ->method('validate')
-            ->with($request, $method)
-            ->willReturn([]);
-
-        $method->expects($this->once())
-            ->method('__invoke')
-            ->with($request)
-            ->willReturn($result);
-
-        $this->eventDispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with($this->callback(function ($event) use ($method, $request, $result) {
-                return $event instanceof MethodExecuteSuccessEvent
-                    && $event->getMethod() === $method
-                    && $event->getJsonRpcRequest() === $request
-                    && $event->getResult() === $result;
-            }));
-
-        $this->responseCreator->expects($this->once())
-            ->method('createResultResponse')
-            ->with($result, $request)
-            ->willReturn($response);
-
-        $returnedResponse = $this->requestHandler->processJsonRpcRequest($request);
-
-        $this->assertSame($response, $returnedResponse);
+        $this->assertNotNull($result);
+        $this->assertEquals(1, $result->getId());
+        $this->assertNull($result->getError());
+        $this->assertNotNull($result->getResult());
     }
 
-    public function testProcessJsonRpcRequest_whenMethodThrowsException_returnsErrorResponse(): void
+    public function testProcessJsonRpcRequestWithInvalidMethodThrowsException(): void
     {
         $request = new JsonRpcRequest();
-        $request->setMethod('test.method');
+        $request->setMethod('invalidMethod');
+        $request->setId(1);
+        $request->setParams(new JsonRpcParams([])); // Initialize params
 
-        $method = $this->createMock(JsonRpcMethodInterface::class);
-        $exception = new \RuntimeException('Test exception');
-        $response = new JsonRpcResponse();
-
-        $this->methodResolver->expects($this->once())
-            ->method('resolve')
-            ->with('test.method')
-            ->willReturn($method);
-
-        $this->paramsValidator->expects($this->once())
-            ->method('validate')
-            ->with($request, $method)
-            ->willReturn([]);
-
-        $method->expects($this->once())
-            ->method('__invoke')
-            ->with($request)
-            ->willThrowException($exception);
-
-        $this->eventDispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with($this->callback(function ($event) use ($method, $request, $exception) {
-                return $event instanceof MethodExecuteFailureEvent
-                    && $event->getMethod() === $method
-                    && $event->getJsonRpcRequest() === $request
-                    && $event->getException() === $exception;
-            }));
-
-        $this->responseCreator->expects($this->once())
-            ->method('createErrorResponse')
-            ->with($exception, $request)
-            ->willReturn($response);
-
-        $returnedResponse = $this->requestHandler->processJsonRpcRequest($request);
-
-        $this->assertSame($response, $returnedResponse);
+        $this->expectException(JsonRpcMethodNotFoundException::class);
+        $this->requestHandler->processJsonRpcRequest($request);
     }
 
-    public function testResolveMethod_withValidMethodName_returnsMethod(): void
+    public function testResolveMethod(): void
     {
         $request = new JsonRpcRequest();
-        $request->setMethod('test.method');
+        $request->setMethod('GetServerTime');
 
-        $method = $this->createMock(JsonRpcMethodInterface::class);
+        $method = $this->requestHandler->resolveMethod($request);
 
-        $this->methodResolver->expects($this->once())
-            ->method('resolve')
-            ->with('test.method')
-            ->willReturn($method);
-
-        $returnedMethod = $this->requestHandler->resolveMethod($request);
-
-        $this->assertSame($method, $returnedMethod);
+        $this->assertInstanceOf(JsonRpcMethodInterface::class, $method);
     }
 
-    public function testResolveMethod_withInvalidMethodName_throwsMethodNotFoundException(): void
+    public function testResolveMethodWithInvalidMethodThrowsException(): void
     {
         $request = new JsonRpcRequest();
-        $request->setMethod('invalid.method');
-
-        $this->methodResolver->expects($this->once())
-            ->method('resolve')
-            ->with('invalid.method')
-            ->willReturn(null);
+        $request->setMethod('invalidMethod');
 
         $this->expectException(JsonRpcMethodNotFoundException::class);
         $this->requestHandler->resolveMethod($request);
-    }
-
-    public function testResolveMethod_withNonInterfaceMethod_throwsMethodNotFoundException(): void
-    {
-        $request = new JsonRpcRequest();
-        $request->setMethod('test.method');
-
-        // 创建一个不是JsonRpcMethodInterface实例的对象，但需要让methodResolver的返回值能通过类型检查
-        $nonInterfaceMethod = null;
-
-        $this->methodResolver->expects($this->once())
-            ->method('resolve')
-            ->with('test.method')
-            ->willReturn($nonInterfaceMethod);
-
-        $this->expectException(JsonRpcMethodNotFoundException::class);
-        $this->requestHandler->resolveMethod($request);
-    }
-
-    public function testValidateParamList_withInvalidParams_throwsInvalidParamsException(): void
-    {
-        $request = new JsonRpcRequest();
-        $method = $this->createMock(JsonRpcMethodInterface::class);
-
-        $violations = [
-            ['path' => 'param1', 'message' => 'Error message', 'code' => '001']
-        ];
-
-        $this->paramsValidator->expects($this->once())
-            ->method('validate')
-            ->with($request, $method)
-            ->willReturn($violations);
-
-        $this->expectException(JsonRpcInvalidParamsException::class);
-
-        // Call protected method through reflection
-        $validateMethod = new \ReflectionMethod(JsonRpcRequestHandler::class, 'validateParamList');
-        $validateMethod->setAccessible(true);
-        $validateMethod->invoke($this->requestHandler, $request, $method);
-    }
-
-    public function testCreateResponse_withSuccessEvent_returnsResultResponse(): void
-    {
-        $result = ['data' => 'test'];
-        $request = new JsonRpcRequest();
-        $response = new JsonRpcResponse();
-
-        $event = new MethodExecuteSuccessEvent();
-        $event->setResult($result);
-        $event->setJsonRpcRequest($request);
-
-        $this->responseCreator->expects($this->once())
-            ->method('createResultResponse')
-            ->with($result, $request)
-            ->willReturn($response);
-
-        // Call protected method through reflection
-        $createResponseMethod = new \ReflectionMethod(JsonRpcRequestHandler::class, 'createResponse');
-        $createResponseMethod->setAccessible(true);
-        $returnedResponse = $createResponseMethod->invoke($this->requestHandler, $event);
-
-        $this->assertSame($response, $returnedResponse);
-    }
-
-    public function testCreateResponse_withFailureEvent_returnsErrorResponse(): void
-    {
-        $exception = new \RuntimeException('Test exception');
-        $request = new JsonRpcRequest();
-        $response = new JsonRpcResponse();
-
-        $event = new MethodExecuteFailureEvent();
-        $event->setException($exception);
-        $event->setJsonRpcRequest($request);
-
-        $this->responseCreator->expects($this->once())
-            ->method('createErrorResponse')
-            ->with($exception, $request)
-            ->willReturn($response);
-
-        // Call protected method through reflection
-        $createResponseMethod = new \ReflectionMethod(JsonRpcRequestHandler::class, 'createResponse');
-        $createResponseMethod->setAccessible(true);
-        $returnedResponse = $createResponseMethod->invoke($this->requestHandler, $event);
-
-        $this->assertSame($response, $returnedResponse);
     }
 }

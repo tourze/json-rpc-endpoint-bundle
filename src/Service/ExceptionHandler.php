@@ -8,19 +8,19 @@ use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPC\Core\Model\JsonRpcResponse;
 
 /**
- * Class ExceptionHandler
+ * 异常处理器
  */
-class ExceptionHandler
+readonly class ExceptionHandler
 {
     public function __construct(
-        private readonly ResponseCreator $responseCreator,
-        private readonly EventDispatcherInterface $eventDispatcher,
+        private ResponseCreator $responseCreator,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
     public function getJsonRpcResponseFromException(
         \Throwable $exception,
-        ?JsonRpcRequest $fromRequest = null
+        ?JsonRpcRequest $fromRequest = null,
     ): JsonRpcResponse {
         $event = new OnExceptionEvent();
         $event->setException($exception);

@@ -11,19 +11,18 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Service\ResetInterface;
 use Tourze\JsonRPC\Core\Contracts\EndpointInterface;
 use Tourze\JsonRPC\Core\Event\BatchSubRequestProcessedEvent;
-use Tourze\JsonRPC\Core\Event\MethodExecutingEvent;
 use Tourze\JsonRPC\Core\Event\OnBatchSubRequestProcessingEvent;
-use Tourze\JsonRPC\Core\Event\RequestStartEvent;
 use Tourze\JsonRPC\Core\Event\ResponseSendingEvent;
 use Tourze\JsonRPC\Core\Model\JsonRpcCallRequest;
 use Tourze\JsonRPC\Core\Model\JsonRpcCallResponse;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPC\Core\Model\JsonRpcResponse;
-use Tourze\JsonRPCEndpointBundle\EventSubscriber\JsonRpcResultListener;
-use Tourze\JsonRPCEndpointBundle\Serialization\JsonRpcCallSerializer;
+use Tourze\JsonRPC\Core\Serialization\JsonRpcCallSerializer;
+use Tourze\JsonRPCEndpointBundle\Event\DefaultMethodExecutingEvent;
+use Tourze\JsonRPCEndpointBundle\Event\DefaultRequestStartEvent;
 
 #[AsAlias(id: EndpointInterface::class)]
-#[WithMonologChannel(channel: 'procedure')]
+#[WithMonologChannel(channel: 'json_rpc_endpoint')]
 class JsonRpcEndpoint implements ResetInterface, EndpointInterface
 {
     private Stopwatch $stopwatch;
@@ -34,25 +33,22 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
         private readonly ExceptionHandler $exceptionHandler,
         private readonly LoggerInterface $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly JsonRpcResultListener $jsonRpcResultListener,
     ) {
         $this->stopwatch = new Stopwatch(true);
     }
 
     public function index(string $payload, ?Request $request = null): string
     {
-        $event = new RequestStartEvent();
-        $event->setPayload($payload);
-        $event->setRequest($request);
+        $event = new DefaultRequestStartEvent($request, $payload);
         $this->eventDispatcher->dispatch($event);
         $payload = $event->getPayload();
 
-        if (empty($payload) || !json_validate($payload)) {
+        if ('' === $payload || !json_validate($payload)) {
             $this->logger->error('JsonRPC请求时，传入了无效的字符串', [
                 'request' => $payload,
             ]);
 
-            return '';
+            return '{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}';
         }
 
         $this->logger->debug('JsonRPC接收到请求', [
@@ -71,7 +67,8 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
             ]);
         } catch (\Throwable $exception) {
             // Try to create a valid json-rpc error
-            $jsonRpcCallResponse = (new JsonRpcCallResponse())->addResponse(
+            $jsonRpcCallResponse = new JsonRpcCallResponse();
+            $jsonRpcCallResponse->addResponse(
                 $this->exceptionHandler->getJsonRpcResponseFromException($exception)
             );
 
@@ -99,20 +96,6 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
         JsonRpcCallResponse $jsonRpcCallResponse,
         ?JsonRpcCallRequest $jsonRpcCall = null,
     ): string {
-        foreach ($jsonRpcCallResponse->getResponseList() as $response) {
-            $r = $response->getResult();
-            $append = $this->jsonRpcResultListener->getResult();
-            $this->logger->debug('补充额外的返回值', [
-                'append' => $append,
-                'result' => $r,
-            ]);
-            if (is_array($r) && !empty($append)) {
-                $r = array_merge($r, $append);
-                $response->setResult($r);
-            }
-        }
-        $this->jsonRpcResultListener->setResult([]);
-
         return $this->jsonRpcCallSerializer->serialize($jsonRpcCallResponse);
     }
 
@@ -146,11 +129,10 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
                 throw $item;
             }
 
-            $event = new MethodExecutingEvent();
-            $event->setItem($item);
+            $event = new DefaultMethodExecutingEvent($item);
             $this->eventDispatcher->dispatch($event);
 
-            if ($event->getResponse() !== null) {
+            if (null !== $event->getResponse()) {
                 return $event->getResponse();
             }
 
