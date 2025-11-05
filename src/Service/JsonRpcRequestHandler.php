@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Tourze\JsonRPC\Core\Contracts\RequestHandlerInterface;
 use Tourze\JsonRPC\Core\Domain\JsonRpcMethodInterface;
@@ -23,6 +24,7 @@ use Tourze\JsonRPCContainerBundle\Service\MethodResolver;
  * JSON-RPC 请求处理器
  */
 #[AsAlias(id: RequestHandlerInterface::class)]
+#[Autoconfigure(public: true)]
 #[WithMonologChannel(channel: 'json_rpc_endpoint')]
 readonly class JsonRpcRequestHandler implements RequestHandlerInterface
 {

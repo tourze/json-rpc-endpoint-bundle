@@ -4,6 +4,7 @@ namespace Tourze\JsonRPCEndpointBundle\Service;
 
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Tourze\JsonRPC\Core\Domain\JsonRpcMethodInterface;
@@ -14,6 +15,7 @@ use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 /**
  * Class JsonRpcParamsValidator
  */
+#[Autoconfigure(public: true)]
 #[WithMonologChannel(channel: 'procedure')]
 readonly class JsonRpcParamsValidator implements JsonRpcMethodParamsValidatorInterface
 {

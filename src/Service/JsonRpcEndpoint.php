@@ -5,6 +5,7 @@ namespace Tourze\JsonRPCEndpointBundle\Service;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -22,6 +23,7 @@ use Tourze\JsonRPCEndpointBundle\Event\DefaultMethodExecutingEvent;
 use Tourze\JsonRPCEndpointBundle\Event\DefaultRequestStartEvent;
 
 #[AsAlias(id: EndpointInterface::class)]
+#[Autoconfigure(public: true)]
 #[WithMonologChannel(channel: 'json_rpc_endpoint')]
 class JsonRpcEndpoint implements ResetInterface, EndpointInterface
 {

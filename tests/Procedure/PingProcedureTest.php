@@ -43,6 +43,7 @@ final class PingProcedureTest extends AbstractProcedureTestCase
 
         $result = $procedure->__invoke($request);
 
+        $this->assertIsArray($result);
         $this->assertArrayHasKey('pong', $result);
         $this->assertSame('pong', $result['pong']);
     }
