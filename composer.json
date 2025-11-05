@@ -21,7 +21,7 @@
     "symfony/validator": "^7.3",
     "tourze/backtrace-helper": "1.*",
     "tourze/bundle-dependency": "1.*",
-    "tourze/json-rpc-container-bundle": "0.0.*",
+    "tourze/json-rpc-container-bundle": "1.0.*",
     "tourze/json-rpc-core": "1.0.*",
     "tourze/user-event-bundle": "1.0.*"
   },
