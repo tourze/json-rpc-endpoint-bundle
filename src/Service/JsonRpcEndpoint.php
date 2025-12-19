@@ -12,15 +12,15 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Service\ResetInterface;
 use Tourze\JsonRPC\Core\Contracts\EndpointInterface;
 use Tourze\JsonRPC\Core\Event\BatchSubRequestProcessedEvent;
+use Tourze\JsonRPC\Core\Event\MethodExecutingEvent;
 use Tourze\JsonRPC\Core\Event\OnBatchSubRequestProcessingEvent;
+use Tourze\JsonRPC\Core\Event\RequestStartEvent;
 use Tourze\JsonRPC\Core\Event\ResponseSendingEvent;
 use Tourze\JsonRPC\Core\Model\JsonRpcCallRequest;
 use Tourze\JsonRPC\Core\Model\JsonRpcCallResponse;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPC\Core\Model\JsonRpcResponse;
 use Tourze\JsonRPC\Core\Serialization\JsonRpcCallSerializer;
-use Tourze\JsonRPCEndpointBundle\Event\DefaultMethodExecutingEvent;
-use Tourze\JsonRPCEndpointBundle\Event\DefaultRequestStartEvent;
 
 #[AsAlias(id: EndpointInterface::class)]
 #[Autoconfigure(public: true)]
@@ -41,7 +41,7 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
 
     public function index(string $payload, ?Request $request = null): string
     {
-        $event = new DefaultRequestStartEvent($request, $payload);
+        $event = new RequestStartEvent($request, $payload);
         $this->eventDispatcher->dispatch($event);
         $payload = $event->getPayload();
 
@@ -131,7 +131,7 @@ class JsonRpcEndpoint implements ResetInterface, EndpointInterface
                 throw $item;
             }
 
-            $event = new DefaultMethodExecutingEvent($item);
+            $event = new MethodExecutingEvent($item);
             $this->eventDispatcher->dispatch($event);
 
             if (null !== $event->getResponse()) {

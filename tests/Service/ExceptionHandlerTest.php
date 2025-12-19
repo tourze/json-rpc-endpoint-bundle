@@ -3,113 +3,62 @@
 namespace Tourze\JsonRPCEndpointBundle\Tests\Service;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Tourze\JsonRPC\Core\Event\OnExceptionEvent;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\JsonRPC\Core\Exception\JsonRpcInternalErrorException;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
-use Tourze\JsonRPC\Core\Model\JsonRpcResponse;
 use Tourze\JsonRPCEndpointBundle\Service\ExceptionHandler;
-use Tourze\JsonRPCEndpointBundle\Service\ResponseCreator;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**
  * @internal
  */
 #[CoversClass(ExceptionHandler::class)]
-final class ExceptionHandlerTest extends TestCase
+#[RunTestsInSeparateProcesses]
+final class ExceptionHandlerTest extends AbstractIntegrationTestCase
 {
     private ExceptionHandler $exceptionHandler;
 
-    private ResponseCreator|MockObject $responseCreator;
-
-    private EventDispatcherInterface|MockObject $eventDispatcher;
-
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        // 创建mock对象
-        $this->responseCreator = $this->createMock(ResponseCreator::class);
-        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-
-        // 直接创建ExceptionHandler实例（使用mock依赖）
-        $this->exceptionHandler = new ExceptionHandler($this->responseCreator, $this->eventDispatcher);
+        $this->exceptionHandler = self::getService(ExceptionHandler::class);
     }
 
-    public function testGetJsonRpcResponseFromExceptionWithNoRequestDispatchesEventAndCreatesResponse(): void
+    public function testGetJsonRpcResponseFromExceptionWithNoRequestCreatesResponse(): void
     {
         $exception = new \Exception('Test exception');
-        $response = new JsonRpcResponse();
 
-        $this->eventDispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with(self::callback(function (OnExceptionEvent $event) use ($exception) {
-                return $event->getException() === $exception && null === $event->getFromJsonRpcRequest();
-            }))
-            ->willReturnArgument(0)
-        ;
+        $response = $this->exceptionHandler->getJsonRpcResponseFromException($exception);
 
-        $this->responseCreator->expects($this->once())
-            ->method('createErrorResponse')
-            ->with($exception, null)
-            ->willReturn($response)
-        ;
-
-        $result = $this->exceptionHandler->getJsonRpcResponseFromException($exception);
-
-        $this->assertSame($response, $result);
+        $this->assertNotNull($response);
+        $this->assertNotNull($response->getError());
+        $this->assertSame(JsonRpcInternalErrorException::CODE, $response->getError()->getErrorCode());
     }
 
-    public function testGetJsonRpcResponseFromExceptionWithRequestDispatchesEventAndCreatesResponse(): void
+    public function testGetJsonRpcResponseFromExceptionWithRequestCreatesResponse(): void
     {
         $exception = new \Exception('Test exception');
         $request = new JsonRpcRequest();
-        $response = new JsonRpcResponse();
+        $request->setId(123);
 
-        $this->eventDispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with(self::callback(function (OnExceptionEvent $event) use ($exception, $request) {
-                return $event->getException() === $exception && $event->getFromJsonRpcRequest() === $request;
-            }))
-            ->willReturnArgument(0)
-        ;
+        $response = $this->exceptionHandler->getJsonRpcResponseFromException($exception, $request);
 
-        $this->responseCreator->expects($this->once())
-            ->method('createErrorResponse')
-            ->with($exception, $request)
-            ->willReturn($response)
-        ;
-
-        $result = $this->exceptionHandler->getJsonRpcResponseFromException($exception, $request);
-
-        $this->assertSame($response, $result);
+        $this->assertNotNull($response);
+        $this->assertSame(123, $response->getId());
+        $this->assertNotNull($response->getError());
+        $this->assertSame(JsonRpcInternalErrorException::CODE, $response->getError()->getErrorCode());
     }
 
-    public function testGetJsonRpcResponseFromExceptionWhenEventModifiesExceptionUsesModifiedException(): void
+    public function testGetJsonRpcResponseFromExceptionPreservesExceptionMessage(): void
     {
-        $originalException = new \Exception('Original exception');
-        $modifiedException = new \RuntimeException('Modified exception');
+        $exception = new \RuntimeException('Custom error message');
         $request = new JsonRpcRequest();
-        $response = new JsonRpcResponse();
 
-        $this->eventDispatcher->expects($this->once())
-            ->method('dispatch')
-            ->with(self::callback(function (OnExceptionEvent $event) {
-                return true;
-            }))
-            ->willReturnCallback(function (OnExceptionEvent $event) use ($modifiedException) {
-                $event->setException($modifiedException);
+        $response = $this->exceptionHandler->getJsonRpcResponseFromException($exception, $request);
 
-                return $event;
-            })
-        ;
-
-        $this->responseCreator->expects($this->once())
-            ->method('createErrorResponse')
-            ->with($modifiedException, $request)
-            ->willReturn($response)
-        ;
-
-        $result = $this->exceptionHandler->getJsonRpcResponseFromException($originalException, $request);
-
-        $this->assertSame($response, $result);
+        $this->assertNotNull($response);
+        $this->assertNotNull($response->getError());
+        $errorData = $response->getError()->getErrorData();
+        $this->assertArrayHasKey(JsonRpcInternalErrorException::DATA_PREVIOUS_KEY, $errorData);
+        $this->assertStringContainsString('Custom error message', $errorData[JsonRpcInternalErrorException::DATA_PREVIOUS_KEY]);
     }
 }

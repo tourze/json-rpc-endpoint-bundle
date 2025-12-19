@@ -5,9 +5,9 @@ namespace Tourze\JsonRPCEndpointBundle\Tests\Service;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Validator\Constraints\Collection;
-use Tourze\JsonRPC\Core\Domain\JsonRpcMethodInterface;
 use Tourze\JsonRPC\Core\Model\JsonRpcParams;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
+use Tourze\JsonRPCEndpointBundle\Procedure\PingProcedure;
 use Tourze\JsonRPCEndpointBundle\Service\JsonRpcParamsValidator;
 use Tourze\JsonRPCEndpointBundle\Tests\Fixtures\TestMethodWithValidatedParams;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
@@ -29,7 +29,7 @@ final class JsonRpcParamsValidatorTest extends AbstractIntegrationTestCase
     public function testValidateWithNonValidatedMethodReturnsEmptyArray(): void
     {
         $request = new JsonRpcRequest();
-        $method = $this->createMock(JsonRpcMethodInterface::class);
+        $method = new PingProcedure();
 
         $result = $this->validator->validate($request, $method);
 

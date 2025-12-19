@@ -6,21 +6,18 @@ namespace Tourze\JsonRPCEndpointBundle\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
-use PHPUnit\Framework\TestCase;
 use Tourze\JsonRPCEndpointBundle\JsonRPCEndpointBundle;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractBundleTestCase;
 
 /**
  * @internal
- *
- * @phpstan-ignore-next-line Bundle 测试不需要数据库，使用 TestCase 即可
  */
 #[CoversClass(JsonRPCEndpointBundle::class)]
 #[RunTestsInSeparateProcesses]
-final class JsonRPCEndpointBundleTest extends TestCase
+final class JsonRPCEndpointBundleTest extends AbstractBundleTestCase
 {
-    public function testBundleHasCorrectPath(): void
+    protected function onSetUp(): void
     {
-        $bundle = new JsonRPCEndpointBundle();
-        $this->assertStringContainsString('json-rpc-endpoint-bundle', $bundle->getPath());
+        // No additional setup needed
     }
 }

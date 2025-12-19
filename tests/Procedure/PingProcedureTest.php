@@ -5,8 +5,9 @@ namespace Tourze\JsonRPCEndpointBundle\Tests\Procedure;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\JsonRPCEndpointBundle\Param\PingProcedureParam;
 use Tourze\JsonRPCEndpointBundle\Procedure\PingProcedure;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -28,10 +29,13 @@ final class PingProcedureTest extends AbstractProcedureTestCase
     public function testExecuteReturnsPong(): void
     {
         $procedure = $this->getProcedure();
-        $result = $procedure->execute();
+        $param = new PingProcedureParam();
+        $result = $procedure->execute($param);
 
-        $this->assertArrayHasKey('pong', $result);
-        $this->assertSame('pong', $result['pong']);
+        $this->assertInstanceOf(\Tourze\JsonRPC\Core\Result\ArrayResult::class, $result);
+        $resultArray = $result->toArray();
+        $this->assertArrayHasKey('pong', $resultArray);
+        $this->assertSame('pong', $resultArray['pong']);
     }
 
     public function testInvokeWithRequestReturnsPong(): void
@@ -43,9 +47,11 @@ final class PingProcedureTest extends AbstractProcedureTestCase
 
         $result = $procedure->__invoke($request);
 
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('pong', $result);
-        $this->assertSame('pong', $result['pong']);
+        $this->assertInstanceOf(\Tourze\JsonRPC\Core\Result\ArrayResult::class, $result);
+        $resultArray = $result->toArray();
+        $this->assertIsArray($resultArray);
+        $this->assertArrayHasKey('pong', $resultArray);
+        $this->assertSame('pong', $resultArray['pong']);
     }
 
     public function testExecuteAndInvokeReturnSameResult(): void
@@ -54,21 +60,27 @@ final class PingProcedureTest extends AbstractProcedureTestCase
         $request = new JsonRpcRequest();
         $request->setMethod('ping');
         $request->setId(1);
+        $param = new PingProcedureParam();
 
-        $executeResult = $procedure->execute();
+        $executeResult = $procedure->execute($param);
         $invokeResult = $procedure->__invoke($request);
 
-        $this->assertSame($executeResult, $invokeResult);
-        $this->assertSame(['pong' => 'pong'], $executeResult);
+        $this->assertInstanceOf(\Tourze\JsonRPC\Core\Result\ArrayResult::class, $executeResult);
+        $this->assertInstanceOf(\Tourze\JsonRPC\Core\Result\ArrayResult::class, $invokeResult);
+        $this->assertSame($executeResult->toArray(), $invokeResult->toArray());
+        $this->assertSame(['pong' => 'pong'], $executeResult->toArray());
     }
 
     public function testMultipleCallsReturnConsistentResult(): void
     {
         $procedure = $this->getProcedure();
-        $result1 = $procedure->execute();
-        $result2 = $procedure->execute();
+        $param = new PingProcedureParam();
+        $result1 = $procedure->execute($param);
+        $result2 = $procedure->execute($param);
 
-        $this->assertSame($result1, $result2);
-        $this->assertSame(['pong' => 'pong'], $result1);
+        $this->assertInstanceOf(\Tourze\JsonRPC\Core\Result\ArrayResult::class, $result1);
+        $this->assertInstanceOf(\Tourze\JsonRPC\Core\Result\ArrayResult::class, $result2);
+        $this->assertSame($result1->toArray(), $result2->toArray());
+        $this->assertSame(['pong' => 'pong'], $result1->toArray());
     }
 }
